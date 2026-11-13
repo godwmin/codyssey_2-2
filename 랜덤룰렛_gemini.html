@@ -6,7 +6,7 @@
   <title>랜덤 룰렛 &amp; 추첨기</title>
   <style>
     /* ==========================================================================
-       1. 디자인 토큰 및 기본 스타일 (외부 글꼴/라이브러리 미사용)
+       1. 디자인 토큰 및 기본 스타일 (외부 글꼴/라이브러리/이미지 일절 미사용)
        ========================================================================== */
     :root {
       --bg-page: #f4f6fb;
@@ -21,7 +21,6 @@
       --primary: #4f46e5;
       --primary-hover: #4338ca;
       --primary-soft: #eef2ff;
-      --accent: #0ea5e9;
       --success: #10b981;
       --success-soft: #ecfdf5;
       --warning: #f59e0b;
@@ -29,12 +28,11 @@
       --danger: #ef4444;
       --danger-hover: #dc2626;
       --danger-soft: #fef2f2;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
       --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
       --radius-lg: 18px;
       --radius-md: 12px;
       --radius-sm: 8px;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", "맑은 고딕", "Segoe UI", sans-serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", "Segoe UI", sans-serif;
     }
 
     * {
@@ -53,31 +51,32 @@
     }
 
     /* ==========================================================================
-       2. 레이아웃 구조 (반응형 2단 분할)
+       2. 레이아웃 구조 (수정 기록 3: 모바일/좁은 창 반응형 1단 전환 및 여백 최적화)
        ========================================================================== */
     .app-container {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 16px 12px 40px;
     }
 
     .app-header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     .app-title {
-      font-size: 1.65rem;
+      font-size: 1.45rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--text-main);
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 8px;
     }
 
     .app-subtitle {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       color: var(--text-sub);
       margin-top: 4px;
     }
@@ -85,8 +84,23 @@
     .main-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 20px;
+      gap: 16px;
       align-items: start;
+    }
+
+    @media (min-width: 640px) {
+      .app-container {
+        padding: 24px 18px 48px;
+      }
+      .app-title {
+        font-size: 1.65rem;
+      }
+      .app-subtitle {
+        font-size: 0.92rem;
+      }
+      .main-grid {
+        gap: 20px;
+      }
     }
 
     @media (min-width: 900px) {
@@ -104,7 +118,13 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
-      padding: 22px;
+      padding: 18px;
+    }
+
+    @media (min-width: 640px) {
+      .card {
+        padding: 22px;
+      }
     }
 
     .section-header {
@@ -113,6 +133,7 @@
       justify-content: space-between;
       margin-bottom: 14px;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .section-title {
@@ -122,7 +143,7 @@
     }
 
     /* ==========================================================================
-       3. 공통 버튼 & 폼 컨트롤
+       3. 공통 버튼 & 폼 컨트롤 (수정 기록 3: 터치·클릭 최소 높이 및 줄바꿈 방지)
        ========================================================================== */
     button {
       font-family: inherit;
@@ -137,8 +158,10 @@
       justify-content: center;
       gap: 6px;
       user-select: none;
-      min-height: 40px;
-      padding: 0 14px;
+      min-height: 44px;
+      padding: 0 16px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     button:active:not(:disabled) {
@@ -162,7 +185,7 @@
     .btn-spin {
       width: 100%;
       max-width: 320px;
-      height: 50px;
+      min-height: 52px;
       font-size: 1.05rem;
       font-weight: 700;
       border-radius: var(--radius-md);
@@ -180,7 +203,8 @@
       background-color: var(--warning-soft);
       color: #b45309;
       border: 1px solid #fde68a;
-      white-space: nowrap;
+      min-height: 44px;
+      padding: 0 16px;
     }
 
     .btn-exclude:hover:not(:disabled) {
@@ -192,7 +216,7 @@
       color: var(--text-sub);
       border: 1px solid var(--border);
       font-size: 0.85rem;
-      min-height: 34px;
+      min-height: 38px;
       padding: 0 12px;
     }
 
@@ -205,11 +229,10 @@
     .btn-delete {
       background-color: transparent;
       color: var(--text-muted);
-      min-height: 32px;
+      min-height: 36px;
       padding: 0 10px;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       border-radius: 6px;
-      flex-shrink: 0;
     }
 
     .btn-delete:hover:not(:disabled) {
@@ -228,7 +251,7 @@
     .candidate-input {
       flex: 1;
       min-width: 0;
-      height: 42px;
+      height: 44px;
       padding: 0 14px;
       font-family: inherit;
       font-size: 0.95rem;
@@ -253,7 +276,7 @@
     .validation-msg {
       min-height: 22px;
       font-size: 0.84rem;
-      font-weight: 500;
+      font-weight: 600;
       margin-top: 6px;
       color: var(--danger);
       display: flex;
@@ -270,6 +293,7 @@
       background-color: var(--primary-soft);
       padding: 4px 10px;
       border-radius: 999px;
+      white-space: nowrap;
     }
 
     .candidate-list-wrapper {
@@ -292,7 +316,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       background-color: var(--bg-sub);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
@@ -360,7 +384,13 @@
     .right-column {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .right-column {
+        gap: 20px;
+      }
     }
 
     .roulette-stage {
@@ -409,6 +439,7 @@
       color: var(--text-sub);
       text-align: center;
       min-height: 24px;
+      word-break: keep-all;
     }
 
     .status-guide.is-warning {
@@ -419,19 +450,29 @@
       color: var(--primary);
     }
 
-    /* 최신 당첨 결과 영역 */
+    /* 최신 당첨 결과 영역 (수정 기록 3: 좁은 화면에서도 버튼이 찌그러지지 않게 배치) */
     .result-box {
       margin-top: 18px;
       width: 100%;
       background-color: var(--bg-sub);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 16px 18px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
+    }
+
+    @media (max-width: 420px) {
+      .result-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .result-box .btn-exclude {
+        width: 100%;
+      }
     }
 
     .result-box.has-winner {
@@ -452,7 +493,7 @@
     }
 
     .result-value {
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: var(--text-muted);
       word-break: break-all;
@@ -526,7 +567,7 @@
         </svg>
         랜덤 룰렛 &amp; 추첨기
       </h1>
-      <p class="app-subtitle">후보를 등록하고 공정한 확률로 추첨 결과를 확인하세요</p>
+      <p class="app-subtitle">후보를 등록하고 공정한 확률로 추첨 결과를 확인하세요 (현재 세션 기준)</p>
     </header>
 
     <main class="main-grid">
@@ -636,7 +677,7 @@
         hasSpunAtLeastOnce: false
       };
 
-      // 다채롭고 시인성이 뛰어난 파스텔/비비드 조화 팔레트 (후보 수 제한 없이 순환)
+      // 시인성이 뛰어난 색상 팔레트 (후보 수 상한 없이 순환 적용)
       const SLICE_PALETTE = [
         "#6366f1", "#ec4899", "#14b8a6", "#f59e0b",
         "#3b82f6", "#8b5cf6", "#10b981", "#f97316",
@@ -685,7 +726,6 @@
           }
 
           const now = audioCtx.currentTime;
-          // 밝은 3화음 아르페지오 효과음 (C5 - E5 - G5 - C6)
           const notes = [523.25, 659.25, 783.99, 1046.5];
           notes.forEach((freq, idx) => {
             const osc = audioCtx.createOscillator();
@@ -705,7 +745,7 @@
             osc.stop(now + idx * 0.075 + 0.3);
           });
         } catch (err) {
-          // 오디오 재생이 차단된 환경에서도 추첨 흐름에 영향을 주지 않음
+          // 오디오 차단 환경 무시
         }
       }
 
@@ -717,7 +757,6 @@
       }
 
       function pickColorForIndex(index) {
-        // 인접한 조각의 색상이 겹치지 않도록 선택
         return SLICE_PALETTE[index % SLICE_PALETTE.length];
       }
 
@@ -726,7 +765,8 @@
       }
 
       /* ========================================================================
-         5. 캔버스 크기 대응 및 룰렛 원판 렌더링
+         5. 고해상도(DPR) 캔버스 대응 및 룰렛 원판 렌더링
+            (수정 기록 1: 반지름 기반 최대 폭 계산, 자동 말줄임, 동적 폰트 축소)
          ======================================================================== */
       function resizeCanvas() {
         const wrapper = dom.canvas.parentElement;
@@ -745,13 +785,13 @@
         const size = wrapper.clientWidth || 360;
         const center = size / 2;
         const radius = center - 6;
+        const hubRadius = 22;
 
         ctx.clearRect(0, 0, size, size);
 
         const active = getActiveCandidates();
         const count = active.length;
 
-        // 참여 후보가 0명일 때 기본 안내 원판 그리기
         if (count === 0) {
           ctx.save();
           ctx.beginPath();
@@ -773,13 +813,12 @@
 
         const sliceAngle = (Math.PI * 2) / count;
 
-        // 각 조각 그리기
         for (let i = 0; i < count; i++) {
           const candidate = active[i];
           const startAngle = state.currentRotation + i * sliceAngle;
           const endAngle = startAngle + sliceAngle;
 
-          // 21개 이상이거나 마지막 조각이 첫 조각과 색이 같을 경우 색상 보정
+          // 마지막 칸이 첫 칸과 색상이 겹치지 않도록 보정
           let fillColor = candidate.color;
           if (count > 1 && i === count - 1 && fillColor === active[0].color) {
             fillColor = SLICE_PALETTE[(i + 1) % SLICE_PALETTE.length];
@@ -793,7 +832,6 @@
           ctx.fillStyle = fillColor;
           ctx.fill();
 
-          // 조각 경계선
           ctx.lineWidth = count > 20 ? 1 : 2;
           ctx.strokeStyle = "#ffffff";
           ctx.stroke();
@@ -803,20 +841,26 @@
           ctx.translate(center, center);
           ctx.rotate(midAngle);
 
-          // 후보 수에 따른 유동적 폰트 크기 및 최대 너비 계산
-          const fontSize = count <= 6 ? 15 : count <= 12 ? 13 : count <= 20 ? 11 : 9.5;
+          // 후보 수 및 캔버스 크기에 맞춘 동적 폰트 크기 계산
+          const baseScale = size / 390;
+          let rawFontSize = 15;
+          if (count > 20) rawFontSize = 9.5;
+          else if (count > 14) rawFontSize = 11;
+          else if (count > 8) rawFontSize = 13;
+
+          const fontSize = Math.max(8.5, Math.round(rawFontSize * baseScale * 10) / 10);
           ctx.font = `700 ${fontSize}px ${getComputedStyle(document.body).fontFamily}`;
           ctx.fillStyle = "#ffffff";
           ctx.textAlign = "right";
           ctx.textBaseline = "middle";
 
-          // 텍스트 가독성을 위한 은은한 그림자
           ctx.shadowColor = "rgba(15, 23, 42, 0.35)";
           ctx.shadowBlur = 3;
 
-          const textOuterRadius = radius - 16;
-          const textInnerRadius = 34;
-          const maxTextWidth = Math.max(textOuterRadius - textInnerRadius, 30);
+          // 바깥 테두리와 중앙 허브 사이 안전 여백 내 최대 텍스트 폭 산출
+          const textOuterRadius = radius - 14;
+          const textInnerRadius = hubRadius + 12;
+          const maxTextWidth = Math.max(textOuterRadius - textInnerRadius, 28);
 
           let label = candidate.name;
           if (ctx.measureText(label).width > maxTextWidth) {
@@ -833,7 +877,7 @@
         // 중앙 장식 허브
         ctx.save();
         ctx.beginPath();
-        ctx.arc(center, center, 22, 0, Math.PI * 2);
+        ctx.arc(center, center, hubRadius, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
         ctx.lineWidth = 3;
@@ -915,7 +959,6 @@
           dom.statusGuide.className = "status-guide is-active";
         } else if (activeCount < 2) {
           dom.spinBtn.disabled = true;
-          // 초기 상태(후보 0개이고 아직 추첨 전)에는 기획서 명시 안내 문구 표시
           if (state.candidates.length === 0 && !state.hasSpunAtLeastOnce) {
             dom.statusGuide.textContent = "후보를 2개 이상 추가해 주세요";
           } else {
@@ -933,7 +976,6 @@
           dom.resultBox.classList.add("has-winner");
           dom.latestResultText.textContent = state.latestWinner.name;
 
-          // 최신 당첨 항목이 목록에 남아 있고 아직 제외되지 않은 상태일 때만 활성화
           const targetCandidate = state.candidates.find(
             (c) => c.id === state.latestWinner.candidateId
           );
@@ -951,7 +993,6 @@
           dom.emptyHistoryMsg.style.display = "block";
         } else {
           dom.emptyHistoryMsg.style.display = "none";
-          // 최신순 정렬 표시
           for (let i = state.history.length - 1; i >= 0; i--) {
             const entry = state.history[i];
             const li = document.createElement("li");
@@ -981,7 +1022,7 @@
       }
 
       /* ========================================================================
-         7. 이벤트 핸들러 (추가, 삭제, 추첨 회전, 제외, 전체 초기화)
+         7. 이벤트 핸들러 (수정 기록 2: 오류 시 자동 focus() 및 select() 처리)
          ======================================================================== */
       function handleAddCandidate(event) {
         event.preventDefault();
@@ -993,6 +1034,7 @@
         if (!trimmed) {
           setValidationMessage("항목을 입력해 주세요");
           dom.candidateInput.focus();
+          dom.candidateInput.select();
           return;
         }
 
@@ -1001,10 +1043,11 @@
         if (isDuplicate) {
           setValidationMessage("이미 등록된 항목입니다");
           dom.candidateInput.focus();
+          dom.candidateInput.select();
           return;
         }
 
-        // 정상 등록
+        // 정상 등록 (등록 개수 상한 제한 없음)
         setValidationMessage("");
         const colorIndex = state.nextCandidateId - 1;
         state.candidates.push({
@@ -1042,21 +1085,16 @@
         state.hasSpunAtLeastOnce = true;
         renderAll();
 
-        // 1) 참여 후보 중 동일한 확률로 1명 무작위 선택
+        // 동일 확률 무작위 추첨
         const count = activeCandidates.length;
         const winnerIndex = Math.floor(Math.random() * count);
-        const winnerCandidate = activeCandidates[winnerIndex];
 
-        // 2) 선택된 후보의 칸 중앙이 상단 포인터(12시 방향 = -Math.PI / 2)에 오도록 목표 각도 계산
-        // Canvas 0 rad = 3시 방향, 시계방향 증가. 12시 방향 = 1.5 * Math.PI (또는 -0.5 * Math.PI)
+        // 12시 포인터(1.5 * Math.PI)에 선택된 칸이 정지하도록 회전각 계산
         const sliceAngle = (Math.PI * 2) / count;
         const pointerAngle = Math.PI * 1.5;
-
-        // 조각 내 자연스러운 위치(중앙 기준 ±25% 이내)로 살짝 랜덤 오프셋 부여하되 경계선 침범 원천 차단
         const safeJitter = (Math.random() - 0.5) * sliceAngle * 0.5;
         const targetSliceCenterOffset = (winnerIndex + 0.5) * sliceAngle + safeJitter;
 
-        // currentRotation + targetSliceCenterOffset ≡ pointerAngle (mod 2π)
         const twoPi = Math.PI * 2;
         const normalizedCurrent = ((state.currentRotation % twoPi) + twoPi) % twoPi;
         const desiredMod = (((pointerAngle - targetSliceCenterOffset) % twoPi) + twoPi) % twoPi;
@@ -1066,15 +1104,13 @@
           deltaAngle += twoPi;
         }
 
-        // 최소 6바퀴 ~ 8바퀴 회전 추가하여 역동적인 감속 애니메이션 연출
         const extraSpins = (6 + Math.floor(Math.random() * 3)) * twoPi;
         const startRotation = state.currentRotation;
         const totalDelta = extraSpins + deltaAngle;
 
-        const duration = 3800; // ms
+        const duration = 3800;
         const startTime = performance.now();
 
-        // 부드러운 감속 곡선 (Ease-Out Quartic)
         function easeOutQuart(t) {
           return 1 - Math.pow(1 - t, 4);
         }
@@ -1090,11 +1126,9 @@
           if (progress < 1) {
             requestAnimationFrame(animateFrame);
           } else {
-            // 회전 완료 처리
             state.currentRotation = (startRotation + totalDelta) % twoPi;
             state.isSpinning = false;
 
-            // 포인터가 가리키는 실제 후보 재검증 (정확성 보장)
             const actualWinner = getCandidateUnderPointer(activeCandidates);
 
             state.latestWinner = {
@@ -1116,9 +1150,6 @@
         requestAnimationFrame(animateFrame);
       }
 
-      /**
-       * 회전 정지 시점의 currentRotation을 기준으로 12시 포인터 아래에 위치한 후보를 계산
-       */
       function getCandidateUnderPointer(activeCandidates) {
         const count = activeCandidates.length;
         const twoPi = Math.PI * 2;
