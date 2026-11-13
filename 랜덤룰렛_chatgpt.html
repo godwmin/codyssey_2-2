@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>랜덤 룰렛 &amp; 추첨기</title>
+<style>
+  :root {
+    color-scheme: light;
+    font-family: system-ui, sans-serif;
+    color: #1b2541;
+    background: #f2f4fb;
+    --primary: #4939b2;
+    --muted: #536078;
+    --line: #dde2f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { max-width: 1100px; margin: auto; padding: clamp(20px, 5vw, 60px); }
+  h1 { margin: 0 0 28px; font-size: clamp(1.8rem, 5vw, 3rem); letter-spacing: -.06em; }
+  h2, h3, p { margin: 0; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 1rem; }
+  .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
+  .panel { min-width: 0; padding: clamp(16px, 3vw, 28px); background: #fff; border: 1px solid var(--line); border-radius: 24px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .count { color: var(--primary); background: #f0edff; border-radius: 30px; padding: 6px 10px; font-size: .82rem; font-weight: 700; }
+  form { display: flex; gap: 8px; margin-top: 20px; }
+  input, button { font: inherit; border-radius: 10px; }
+  input { flex: 1; width: 0; min-width: 0; padding: 10px; border: 1px solid #9aa6bf; }
+  button { cursor: pointer; padding: 9px 13px; border: 1px solid transparent; font-weight: 700; white-space: nowrap; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #8873f2; outline-offset: 2px; }
+  button:disabled { cursor: default; opacity: .55; }
+  .primary { color: white; background: var(--primary); }
+  .secondary { color: #333064; background: #f1f0f8; border-color: var(--line); }
+  .message { min-height: 1.5em; margin-top: 8px; color: #9a2545; font-size: .9rem; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  ul, ol { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  li span, #winner { overflow-wrap: anywhere; min-width: 0; }
+  .excluded { display: block; color: #65508e; font-size: .8rem; margin-top: 3px; }
+  .wheel-area { width: min(100%, 370px); position: relative; margin: 20px auto 16px; }
+  canvas { width: 100%; height: auto; display: block; }
+  .pointer { position: absolute; z-index: 1; left: 50%; top: 0; transform: translateX(-50%); width: 0; height: 0; border-inline: 11px solid transparent; border-top: 22px solid #232045; }
+  .draw { width: 100%; }
+  #draw-help { min-height: 1.5em; text-align: center; margin-top: 8px; }
+  .result { margin: 12px 0 20px; padding: 13px; background: #f6f4ff; border-radius: 12px; }
+  #winner { margin-top: 4px; font-size: 1.15rem; font-weight: 750; }
+  #history { margin-top: 12px; }
+  #history li { justify-content: start; }
+  #history li strong { min-width: 3rem; color: var(--muted); font-size: .85rem; }
+  #empty-history { margin-top: 12px; }
+  @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>랜덤 룰렛 &amp; 추첨기</h1>
+  <div class="layout">
+    <section class="panel" aria-labelledby="candidate-title">
+      <div class="row">
+        <h2 id="candidate-title">후보 목록</h2>
+        <span class="count" id="count" aria-live="polite">참여 후보 0개</span>
+      </div>
+      <form id="candidate-form">
+        <input id="candidate-name" aria-label="후보 이름" aria-describedby="input-message" placeholder="후보 이름 입력" autocomplete="off">
+        <button id="add" class="primary" type="submit">추가</button>
+      </form>
+      <p class="message" id="input-message" role="status"></p>
+      <p class="muted" id="empty-candidates">등록된 후보가 없습니다.</p>
+      <ul id="candidates"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="wheel-title">
+      <h2 id="wheel-title">룰렛</h2>
+      <div class="wheel-area">
+        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="720" height="720" role="img" aria-label="후보가 없는 룰렛"></canvas>
+      </div>
+      <button class="primary draw" id="draw" aria-describedby="draw-help" disabled>룰렛 돌리기</button>
+      <p class="muted" id="draw-help" role="status"></p>
+      <div class="result row">
+        <div>
+          <h3>최신 당첨 결과</h3>
+          <p id="winner" role="status">아직 없음</p>
+        </div>
+        <button class="secondary" id="exclude" disabled>제외하기</button>
+      </div>
+      <div class="row">
+        <h3>추첨 기록</h3>
+        <button class="secondary" id="reset" disabled>전체 초기화</button>
+      </div>
+      <p class="muted" id="empty-history">아직 추첨 기록이 없습니다.</p>
+      <ol id="history"></ol>
+    </section>
+  </div>
+</main>
+<script>
+  const get = (id) => document.getElementById(id);
+  const form = get('candidate-form');
+  const input = get('candidate-name');
+  const add = get('add');
+  const message = get('input-message');
+  const candidateList = get('candidates');
+  const wheel = get('wheel');
+  const context = wheel.getContext('2d');
+  const draw = get('draw');
+  const exclude = get('exclude');
+  const reset = get('reset');
+  const history = get('history');
+  const colors = ['#4939b2', '#a13e64', '#275c9a', '#14675d', '#783f9b', '#8d4b26'];
+
+  let candidates = [];
+  let latest = null;
+  let round = 0;
+  let rotation = 0;
+  let spinning = false;
+
+  function activeCandidates() {
+    return candidates.filter((candidate) => !candidate.excluded);
+  }
+
+  function renderWheel(active) {
+    const center = wheel.width / 2;
+    const radius = center - 16;
+    const fullCircle = Math.PI * 2;
+    const slice = fullCircle / Math.max(active.length, 1);
+
+    context.clearRect(0, 0, wheel.width, wheel.height);
+    wheel.setAttribute('aria-label', active.length
+      ? '룰렛 후보 ' + active.map((candidate) => candidate.name).join(', ')
+      : '후보가 없는 룰렛');
+
+    context.beginPath();
+    context.arc(center, center, radius, 0, fullCircle);
+    context.fillStyle = '#eae7fa';
+    context.fill();
+
+    active.forEach((candidate, index) => {
+      const middle = -Math.PI / 2 + slice * index;
+      context.beginPath();
+      context.moveTo(center, center);
+      context.arc(center, center, radius, middle - slice / 2, middle + slice / 2);
+      context.closePath();
+      context.fillStyle = colors[index % colors.length];
+      context.fill();
+      context.strokeStyle = '#fff';
+      context.lineWidth = Math.min(2, radius * slice / 5);
+      context.stroke();
+
+      const fontSize = Math.min(34, radius * slice * .42);
+      if (fontSize < 12) return;
+      context.save();
+      context.translate(center, center);
+      const flip = Math.cos(middle) < -0.00001;
+      context.rotate(middle + (flip ? Math.PI : 0));
+      context.fillStyle = '#fff';
+      context.font = '700 ' + fontSize + 'px system-ui, sans-serif';
+      context.textAlign = flip ? 'left' : 'right';
+      context.textBaseline = 'middle';
+      const maxWidth = radius * .66;
+      let label = candidate.name;
+      if (context.measureText(label).width > maxWidth) {
+        const letters = Array.from(label).slice(0, 50);
+        while (letters.length && context.measureText(letters.join('') + '…').width > maxWidth) {
+          letters.pop();
+        }
+        label = letters.join('') + '…';
+      }
+      context.fillText(label, radius * .9 * (flip ? -1 : 1), 0);
+      context.restore();
+    });
+
+    context.beginPath();
+    context.arc(center, center, 22, 0, fullCircle);
+    context.fillStyle = '#fff';
+    context.fill();
+    context.strokeStyle = '#d6d0f0';
+    context.lineWidth = 5;
+    context.stroke();
+  }
+
+  function updateControls() {
+    const count = activeCandidates().length;
+    get('count').textContent = '참여 후보 ' + count + '개';
+    get('draw-help').textContent = spinning ? '추첨 중…'
+      : count === 0 ? '후보를 2개 이상 추가해 주세요'
+      : count === 1 ? '추첨에 참여할 후보가 2개 이상 필요합니다' : '';
+    draw.disabled = spinning || count < 2;
+    input.disabled = spinning;
+    add.disabled = spinning;
+    reset.disabled = spinning || (!candidates.length && !round && !input.value && !message.textContent);
+    exclude.disabled = spinning || !candidates.includes(latest) || latest.excluded;
+    candidateList.querySelectorAll('button').forEach((button) => { button.disabled = spinning; });
+  }
+
+  function updateCandidates() {
+    rotation = 0;
+    wheel.style.transform = 'rotate(0deg)';
+    get('empty-candidates').hidden = candidates.length > 0;
+    candidateList.replaceChildren();
+
+    for (const candidate of candidates) {
+      const row = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = candidate.name;
+      if (candidate.excluded) {
+        const badge = document.createElement('small');
+        badge.className = 'excluded';
+        badge.textContent = '제외됨';
+        name.append(badge);
+      }
+      const remove = document.createElement('button');
+      remove.className = 'secondary';
+      remove.textContent = '삭제';
+      remove.setAttribute('aria-label', candidate.name + ' 삭제');
+      remove.addEventListener('click', () => {
+        if (spinning) return;
+        candidates = candidates.filter((item) => item !== candidate);
+        message.textContent = '';
+        updateCandidates();
+        input.focus();
+      });
+      row.append(name, remove);
+      candidateList.append(row);
+    }
+
+    renderWheel(activeCandidates());
+    updateControls();
+  }
+
+  input.addEventListener('input', () => {
+    message.textContent = '';
+    input.removeAttribute('aria-invalid');
+    updateControls();
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (spinning) return;
+    const name = input.value.trim();
+    if (!name || candidates.some((candidate) => candidate.name === name)) {
+      message.textContent = name ? '이미 등록된 항목입니다' : '항목을 입력해 주세요';
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      candidates.push({ name, excluded: false });
+      input.value = '';
+      input.removeAttribute('aria-invalid');
+      message.textContent = '';
+      updateCandidates();
+    }
+    updateControls();
+    input.focus();
+  });
+
+  draw.addEventListener('click', async () => {
+    const active = activeCandidates();
+    if (spinning || active.length < 2) return;
+
+    const index = Math.floor(Math.random() * active.length);
+    const winner = active[index];
+    const target = (360 - index * 360 / active.length) % 360;
+    const advance = (target - rotation + 360) % 360;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const end = rotation + (reduceMotion ? 0 : 360 * 4) + advance;
+    spinning = true;
+    updateControls();
+
+    const animation = wheel.animate(
+      [{ transform: 'rotate(' + rotation + 'deg)' }, { transform: 'rotate(' + end + 'deg)' }],
+      { duration: reduceMotion ? 0 : 2300, easing: 'cubic-bezier(.15,.65,.12,1)', fill: 'forwards' }
+    );
+    await animation.finished;
+    rotation = target;
+    wheel.style.transform = 'rotate(' + rotation + 'deg)';
+    animation.cancel();
+
+    latest = winner;
+    round += 1;
+    get('winner').textContent = winner.name;
+    const entry = document.createElement('li');
+    const number = document.createElement('strong');
+    const name = document.createElement('span');
+    number.textContent = round + '회';
+    name.textContent = winner.name;
+    entry.append(number, name);
+    history.prepend(entry);
+    get('empty-history').hidden = true;
+    spinning = false;
+    updateControls();
+    draw.focus();
+  });
+
+  exclude.addEventListener('click', () => {
+    if (exclude.disabled) return;
+    latest.excluded = true;
+    message.textContent = '';
+    updateCandidates();
+    (draw.disabled ? input : draw).focus();
+  });
+
+  reset.addEventListener('click', () => {
+    if (spinning) return;
+    candidates = [];
+    latest = null;
+    round = 0;
+    form.reset();
+    input.removeAttribute('aria-invalid');
+    message.textContent = '';
+    get('winner').textContent = '아직 없음';
+    history.replaceChildren();
+    get('empty-history').hidden = false;
+    updateCandidates();
+    input.focus();
+  });
+
+  updateCandidates();
+</script>
+</body>
+</html>
